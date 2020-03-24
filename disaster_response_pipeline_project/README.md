@@ -1,5 +1,11 @@
 # Disaster Response Pipeline Project
 
+- This project is main mission is  to classify disaster response messages through machine learning. 
+
+## Project Motivation
+
+In this project, I used data engineering pipelines , natural language processing, and machine learning skills to analyze message data that people sent during disasters to build a model to classifies these disaster messages. that would help in automatize informinging the nearest rescue station 
+
 ### Instructions:
 1. Run the following commands in the project's root directory to set up your database and model.
 
