@@ -1,6 +1,7 @@
 import json
 import plotly
 import pandas as pd
+import pickle
 
 from nltk.stem import WordNetLemmatizer
 from nltk.tokenize import word_tokenize
@@ -15,6 +16,12 @@ from sqlalchemy import create_engine
 app = Flask(__name__)
 
 def tokenize(text):
+    '''
+    INPUT 
+        text: Text to be processed   
+    OUTPUT
+        Returns a processed text variable that was tokenized, lower cased, stripped, and lemmatized
+    '''
     tokens = word_tokenize(text)
     lemmatizer = WordNetLemmatizer()
 
@@ -26,12 +33,23 @@ def tokenize(text):
     return clean_tokens
 
 # load data
-engine = create_engine('sqlite:///../data/YourDatabaseName.db')
-df = pd.read_sql_table('YourTableName', engine)
+engine = create_engine('sqlite:///../data/DisasterResponse.db')
+df =  pd.read_sql_table('DisasterResponse', engine)
+
+print(df.head())
 
 # load model
-model = joblib.load("../models/your_model_name.pkl")
+model = pickle.load(open("../models/classifier.pkl", 'rb'))
+print(model)
 
+X = df.message.values
+y = df.iloc[:,5:]
+
+keys = list(y.columns)
+my_dict = {key: None for key in keys}
+
+for key, value in my_dict.items():
+    my_dict[key] = ((y[key] == 1)).sum()
 
 # index webpage displays cool visuals and receives user input text for model
 @app.route('/')
@@ -39,12 +57,14 @@ model = joblib.load("../models/your_model_name.pkl")
 def index():
     
     # extract data needed for visuals
-    # TODO: Below is an example - modify to extract data for your own visuals
     genre_counts = df.groupby('genre').count()['message']
     genre_names = list(genre_counts.index)
-    
+
+    ### data for visualizing category counts.
+    label_sums = df.iloc[:, 4:].sum()
+    label_names = list(label_sums.index)
+
     # create visuals
-    # TODO: Below is an example - modify to create your own visuals
     graphs = [
         {
             'data': [
@@ -63,8 +83,27 @@ def index():
                     'title': "Genre"
                 }
             }
+        },
+        {
+            'data': [
+                Bar(
+                    x=label_names,
+                    y=label_sums,
+                )
+            ],
+
+            'layout': {
+                'title': 'Distribution of categories',
+                'yaxis': {
+                    'title': "Count"
+                },
+                'xaxis': {
+
+                },
+            }
         }
-    ]
+
+]
     
     # encode plotly graphs in JSON
     ids = ["graph-{}".format(i) for i, _ in enumerate(graphs)]
@@ -72,7 +111,6 @@ def index():
     
     # render web page with plotly graphs
     return render_template('master.html', ids=ids, graphJSON=graphJSON)
-
 
 # web page that handles user query and displays model results
 @app.route('/go')
@@ -84,17 +122,15 @@ def go():
     classification_labels = model.predict([query])[0]
     classification_results = dict(zip(df.columns[4:], classification_labels))
 
-    # This will render the go.html Please see that file. 
+    # to render the go.html Please see that file. 
     return render_template(
         'go.html',
         query=query,
         classification_result=classification_results
     )
 
-
 def main():
     app.run(host='0.0.0.0', port=3001, debug=True)
-
 
 if __name__ == '__main__':
     main()
