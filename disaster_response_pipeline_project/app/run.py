@@ -25,10 +25,10 @@ def tokenize(text):
     tokens = word_tokenize(text)
     lemmatizer = WordNetLemmatizer()
 
-    clean_tokens = []
-    for tok in tokens:
-        clean_tok = lemmatizer.lemmatize(tok).lower().strip()
-        clean_tokens.append(clean_tok)
+    clean_words = []
+    for w in tokens:
+        clean_word= lemmatizer.lemmatize(w).lower().strip()
+        clean_words.append(clean_word)
 
     return clean_tokens
 
@@ -43,13 +43,13 @@ model = pickle.load(open("../models/classifier.pkl", 'rb'))
 print(model)
 
 X = df.message.values
-y = df.iloc[:,5:]
+Y= df.iloc[:,5:]
 
-keys = list(y.columns)
+keys = list(Y.columns)
 my_dict = {key: None for key in keys}
 
 for key, value in my_dict.items():
-    my_dict[key] = ((y[key] == 1)).sum()
+    my_dict[key] = ((Y[key] == 1)).sum()
 
 # index webpage displays cool visuals and receives user input text for model
 @app.route('/')
